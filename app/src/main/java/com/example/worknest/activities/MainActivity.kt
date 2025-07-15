@@ -1,6 +1,7 @@
 package com.example.worknest.activities
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -21,6 +22,7 @@ import com.example.worknest.models.User
 import com.example.worknest.utils.Constants
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlin.jvm.java
 
 class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -39,6 +41,8 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        setupActionBar()
+
         // Setup Toolbar
         setSupportActionBar(binding.appBarMain.toolbarMainActivity)
         binding.appBarMain.toolbarMainActivity.setNavigationIcon(R.drawable.ic_action_navigation_menu)
@@ -47,9 +51,26 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         }
 
         binding.navView.setNavigationItemSelectedListener(this)
-
         FirestoreClass().loadUserData(this,true)
 
+
+        mSharedPreferences = this.getSharedPreferences(Constants.WORKNEST_PREFERENCES, Context.MODE_PRIVATE)
+        val tokenUpdated = mSharedPreferences.getBoolean(Constants.FCM_TOKEN_UPDATED, false)
+        if (tokenUpdated) {
+            showProgressDialog(resources.getString(R.string.please_wait))
+            FirestoreClass().loadUserData(this, true)
+        } else {
+            FirebaseMessaging.getInstance().token
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        val token = task.result
+                        updateFCMToken(token)
+                    } else {
+                        Log.w("FCM", "Fetching FCM registration token failed", task.exception)
+                    }
+                }
+        }
+        FirestoreClass().loadUserData(this, true)
 
         binding.appBarMain.fabCreateBoard.setOnClickListener{
             val intent = Intent(this, CreateBoardActivity::class.java)
@@ -60,7 +81,6 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
     private fun setupActionBar(){
         setSupportActionBar(binding.appBarMain.toolbarMainActivity)
         binding.appBarMain.toolbarMainActivity.setNavigationIcon(R.drawable.ic_action_navigation_menu)
-
         binding.appBarMain.toolbarMainActivity.setNavigationOnClickListener{
 
         }
@@ -105,7 +125,7 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
             }
             R.id.nav_sign_out -> {
                 FirebaseAuth.getInstance().signOut()
-
+                mSharedPreferences.edit().clear().apply()
                 val intent = Intent(this, IntroActivity::class.java)
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
                 startActivity(intent)
@@ -117,6 +137,7 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
     }
 
     fun updateNavigationUserDetails(user: User?, readBoardsList : Boolean ) {
+        hideProgressDialog()
         val navView = binding.navView
         val headerView = navView.getHeaderView(0)
         val headerBinding = NavHeaderMainBinding.bind(headerView)
@@ -171,5 +192,12 @@ class MainActivity : BaseActivity(), NavigationView.OnNavigationItemSelectedList
         editor.apply()
         showProgressDialog(resources.getString(R.string.please_wait))
         FirestoreClass().loadUserData(this, true)
+    }
+
+    private fun updateFCMToken(token: String) {
+        val userHashMap = HashMap<String, Any>()
+        userHashMap[Constants.FCM_TOKEN] = token
+        showProgressDialog(resources.getString(R.string.please_wait))
+        FirestoreClass().updateUserProfileData(this, userHashMap)
     }
 }

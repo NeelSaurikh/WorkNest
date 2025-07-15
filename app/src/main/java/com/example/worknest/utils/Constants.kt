@@ -28,7 +28,8 @@ object Constants {
     const val UN_SELECT: String = "UnSelect"
     const val WORKNEST_PREFERENCES: String = "WorknestPrefs"
     const val FCM_TOKEN_UPDATED:String = "fcmTokenUpdated"
-    const val FCM_TOKEN:String = "fcmToken"
+    const val FCM_TOKEN: String = "fcmToken"
+    // FCM Notifications Constants
     const val FCM_BASE_URL:String = "https://fcm.googleapis.com/fcm/send"
     const val FCM_AUTHORIZATION:String = "authorization"
     const val FCM_KEY:String = "key"

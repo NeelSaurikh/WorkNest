@@ -136,20 +136,6 @@ class MyProfileActivity : BaseActivity() {
         }
     }
 
-    private fun updateUserProfileData() {
-        val userHashMap = HashMap<String, Any>()
-
-        if (mProfileImageURL.isNotEmpty() && mProfileImageURL != mUserDetails.image) {
-            userHashMap[Constants.IMAGE] = mProfileImageURL
-        }
-        if (binding.etName.text.toString() != mUserDetails.name) {
-            userHashMap[Constants.NAME] = binding.etName.text.toString()
-        }
-        if (binding.etMobile.text.toString() != mUserDetails.mobile.toString()) {
-            userHashMap[Constants.MOBILE] = binding.etMobile.text.toString().toLong()
-        }
-        FirestoreClass().updateUserProfileData(this, userHashMap)
-    }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == Activity.RESULT_OK && requestCode == Constants.PICK_IMAGE_REQUEST_CODE && data!!.data != null) {
@@ -166,7 +152,27 @@ class MyProfileActivity : BaseActivity() {
             }
         }
     }
+    private fun updateUserProfileData() {
+        val userHashMap = HashMap<String, Any>()
 
+        if (mProfileImageURL.isNotEmpty() && mProfileImageURL != mUserDetails.image) {
+            userHashMap[Constants.IMAGE] = mProfileImageURL
+        }
+
+        if (binding.etName.text.toString() != mUserDetails.name) {
+            userHashMap[Constants.NAME] = binding.etName.text.toString()
+        }
+
+        val mobileText = binding.etMobile.text.toString().trim()
+        val mobileNumber = mobileText.toLongOrNull()
+
+        if (!mobileText.isNullOrEmpty() && mobileNumber != null && mobileNumber != mUserDetails.mobile) {
+            userHashMap[Constants.MOBILE] = mobileNumber
+        }
+        FirestoreClass().updateUserProfileData(this, userHashMap)
+    }
+
+//
 //    private fun updateUserProfileData() {
 //        val userHashMap = HashMap<String, Any>()
 //        if (mProfileImageURL.isNotEmpty() && mProfileImageURL != mUserDetails.image) {

@@ -54,6 +54,7 @@ dependencies {
     implementation("de.hdodenhof:circleimageview:3.1.0")
     implementation(libs.firebase.storage)
     implementation("com.google.android.gms:play-services-base:18.7.1")
+    implementation("com.google.firebase:firebase-messaging:24.1.2")
     coreLibraryDesugaring(libs.desugar.jdk.libs)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
